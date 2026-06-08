@@ -91,3 +91,6 @@
 [submodule "packages/general/cockpit-tools"]
 	path = packages/general/cockpit-tools
 	url = https://github.com/jlcodes99/cockpit-tools.git
+[submodule "packages/openai/gpt-trahatel"]
+	path = packages/openai/gpt-trahatel
+	url = https://github.com/gfhfyjbr/gpt-trahatel.git

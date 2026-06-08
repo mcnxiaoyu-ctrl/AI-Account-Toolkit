@@ -14,12 +14,13 @@ All notable changes to this project will be documented in this file. This projec
 - **CPA-Manager-Plus** (`packages/codex/CPA-Manager-Plus`): Codex Plus Account 管理工具，支持 Token 批量管理与格式转换。
 - **CPA2sub2API** (`packages/codex/CPA2sub2API`): CPA 格式 Token 转 sub2api 格式工具。
 - **cockpit-tools** (`packages/general/cockpit-tools`): OpenAI Cockpit 管理工具集。
+- **gpt-trahatel** (`packages/openai/gpt-trahatel`): GPT 相关工具集。
 - **oai-Team-SSO-OIDC** (`packages/openai/oai-Team-SSO-OIDC`): OpenAI Team SSO OIDC 协议实现，支持企业级注册流程。
 
 ### 📝 Documentation
 - 为 `team/` 目录添加完整 README 文档
 - 更新主 README，新增 Codex 模块分类
-- 子模块总数从 27 个增加到 31 个
+- 子模块总数从 27 个增加到 32 个
 
 ---
 

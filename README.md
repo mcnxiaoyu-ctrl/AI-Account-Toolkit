@@ -72,6 +72,7 @@ AI-Account-Toolkit/
 - **[free-unofficial-api](packages/openai/free-unofficial-openai-api/README.md)**: 支持 GPT-4o 及其最新音频预览模型的免费 API 服务。
 - **[ab-card](packages/openai/ab-card/README.md)**: 自动开通 ChatGPT Business/Plus 套餐（首月免月费）。
 - **[oai-Team-SSO-OIDC](packages/openai/oai-Team-SSO-OIDC/README.md)**: OpenAI Team SSO OIDC 协议实现，支持企业级注册流程。
+- **[gpt-trahatel](packages/openai/gpt-trahatel/README.md)**: GPT 相关工具集。
 
 ### 🛡️ 逆向与通用工具 (packages/general)
 
@@ -158,7 +159,7 @@ find . -name "requirements.txt" -not -path "*/node_modules/*" -exec pip install 
 
 ---
 
-## 📋 子模块列表 (共 31 个)
+## 📋 子模块列表 (共 32 个)
 
 | 分类 | 路径 | 核心功能 |
 | :--- | :--- | :--- |
