@@ -1,7 +1,7 @@
 # 🛠️ AI-Account-Toolkit
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-2.6.0-orange.svg?style=flat-square)](https://github.com/adminlove520/AI-Account-Toolkit/releases)
+[![Version](https://img.shields.io/badge/Version-2.7.2-orange.svg?style=flat-square)](https://github.com/adminlove520/AI-Account-Toolkit/releases)
 [![GitHub stars](https://img.shields.io/github/stars/adminlove520/AI-Account-Toolkit?style=flat-square&color=gold)](https://github.com/adminlove520/AI-Account-Toolkit/stargazers)
 [![GitHub last commit](https://img.shields.io/github/last-commit/adminlove520/AI-Account-Toolkit?style=flat-square)](https://github.com/adminlove520/AI-Account-Toolkit/commits/main)
 
