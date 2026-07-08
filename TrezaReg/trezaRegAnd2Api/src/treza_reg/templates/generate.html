@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>生图 - TrezaReg</title>
+<style>
+:root {
+  --bg: #f5f6fa; --card: #fff; --text: #2d3436; --sub: #636e72;
+  --border: #e0e0e0; --accent: #6c5ce7; --green: #00b894; --red: #d63031;
+  --yellow: #fdcb6e; --hover: #f0f0ff;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font:14px/1.5 -apple-system,"Segoe UI",sans-serif; background:var(--bg); color:var(--text); height:100vh; display:flex; flex-direction:column; }
+.header { background:var(--card); border-bottom:1px solid var(--border); padding:12px 24px; display:flex; align-items:center; justify-content:center; position:relative; flex-shrink:0; }
+.header h1 { font-size:20px; font-weight:700; color:var(--accent); }
+.header .brand { position:absolute; left:24px; display:flex; align-items:center; gap:10px; }
+.header .brand .sub { font-size:12px; color:var(--sub); }
+.nav { display:flex; gap:4px; }
+.nav a { padding:6px 16px; border-radius:6px; text-decoration:none; font-size:13px; font-weight:600; color:var(--sub); }
+.nav a.active, .nav a:hover { background:var(--accent); color:#fff; }
+
+.account-select { display:flex; align-items:center; gap:8px; }
+.account-select label { font-size:12px; font-weight:600; color:var(--sub); white-space:nowrap; }
+.account-select select { padding:6px 10px; border:1px solid var(--border); border-radius:6px; font-size:13px; outline:none; max-width:260px; }
+.account-select select:focus { border-color:var(--accent); }
+.account-select .no-account { font-size:12px; color:var(--red); }
+
+.mode-toggle { display:flex; align-items:center; gap:4px; margin-left:8px; }
+.mode-btn { padding:4px 10px; border:1px solid var(--border); border-radius:4px; font-size:11px; font-weight:600; cursor:pointer; background:var(--card); color:var(--sub); transition:.15s; white-space:nowrap; }
+.mode-btn.active { background:var(--accent); color:#fff; border-color:var(--accent); }
+.mode-btn:hover:not(.active) { background:var(--hover); }
+
+.chat-wrap { flex:1; overflow-y:auto; padding:20px 24px; display:flex; flex-direction:column; gap:16px; }
+.chat-wrap .empty-hint { text-align:center; color:var(--sub); padding:60px 20px; font-size:15px; }
+
+.msg { max-width:800px; width:100%; animation:fadeIn .2s; }
+.msg.user { align-self:flex-end; }
+.msg.assistant { align-self:flex-start; }
+.msg-role { font-size:11px; font-weight:700; margin-bottom:4px; text-transform:uppercase; letter-spacing:.5px; }
+.msg.user .msg-role { color:var(--accent); text-align:right; }
+.msg.assistant .msg-role { color:var(--green); }
+
+.msg-bubble { padding:12px 16px; border-radius:12px; line-height:1.6; word-break:break-word; }
+.msg.user .msg-bubble { background:var(--accent); color:#fff; border-bottom-right-radius:4px; }
+.msg.assistant .msg-bubble { background:var(--card); border:1px solid var(--border); border-bottom-left-radius:4px; }
+
+.msg-img { max-width:320px; max-height:320px; border-radius:8px; margin-top:8px; display:block; border:1px solid var(--border); }
+.msg.user .msg-img { margin-left:auto; }
+.msg-status { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--sub); margin-top:6px; padding:0 4px; }
+.msg-status .dot { width:8px; height:8px; border-radius:50%; background:var(--accent); animation:pulse 1s infinite; }
+
+.msg-tools { display:flex; flex-wrap:wrap; gap:4px; margin-top:6px; }
+.tool-badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; }
+.tool-badge.ok { background:#e6f9f0; color:var(--green); }
+.tool-badge.fail { background:#ffeaea; color:var(--red); }
+
+.cursor { display:inline-block; width:2px; height:16px; background:var(--accent); vertical-align:text-bottom; animation:blink .7s infinite; margin-left:1px; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+@keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+
+.input-wrap { background:var(--card); border-top:1px solid var(--border); padding:14px 24px; flex-shrink:0; }
+.input-row { display:flex; gap:10px; align-items:flex-end; max-width:900px; margin:0 auto; width:100%; }
+.input-row textarea { flex:1; padding:10px 14px; border:1px solid var(--border); border-radius:8px; font-size:14px; outline:none; resize:none; font-family:inherit; line-height:1.4; min-height:42px; max-height:120px; }
+.input-row textarea:focus { border-color:var(--accent); }
+.input-extras { display:flex; gap:8px; margin-top:8px; max-width:900px; margin-left:auto; margin-right:auto; width:100%; }
+.input-extras input { flex:1; padding:6px 10px; border:1px solid var(--border); border-radius:6px; font-size:12px; outline:none; }
+.input-extras input:focus { border-color:var(--accent); }
+.input-extras input::placeholder { color:#bbb; }
+
+.btn { padding:8px 20px; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer; border:none; transition:.15s; display:inline-flex; align-items:center; gap:6px; white-space:nowrap; }
+.btn-primary { background:var(--accent); color:#fff; }
+.btn-primary:hover { opacity:.85; }
+.btn-primary:disabled { opacity:.5; cursor:not-allowed; }
+.btn-outline { background:var(--card); color:var(--accent); border:1px solid var(--accent); }
+
+.toast { position:fixed; top:20px; right:20px; padding:10px 18px; border-radius:8px; color:#fff; font-weight:600; z-index:999; animation:fadeIn .3s; }
+.toast-ok { background:var(--green); }
+.toast-err { background:var(--red); }
+
+.conv-title { text-align:center; font-size:12px; color:var(--sub); padding:4px; margin-bottom:-8px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="brand">
+    <h1>TrezaReg</h1>
+    <span class="sub">AI 生图</span>
+    <div class="account-select">
+      <label for="account">账号:</label>
+      <select id="account"><option value="">-- 加载中 --</option></select>
+    </div>
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="mode-rr" onclick="setMode('round-robin')">轮询</button>
+      <button class="mode-btn" id="mode-single" onclick="setMode('single')">单账号</button>
+    </div>
+  </div>
+  <nav class="nav">
+    <a href="/">账号管理</a>
+    <a href="/register">注册中心</a>
+    <a href="/generate" class="active">生图</a>
+  </nav>
+</div>
+
+<div class="chat-wrap" id="chat">
+  <div class="empty-hint">输入提示词开始生图<br><small>选择一个可用账号后即可使用</small></div>
+</div>
+
+<div class="input-wrap">
+  <div class="input-row">
+    <textarea id="prompt" rows="1" placeholder="输入提示词，如: 生成一张风景图..." onkeydown="onKeyDown(event)"></textarea>
+    <button class="btn btn-primary" id="btn-send" onclick="sendMessage()" disabled>发送</button>
+  </div>
+  <div class="input-extras">
+    <input type="text" id="img-url" placeholder="可选: 图片 URL (如 https://...)">
+  </div>
+</div>
+
+<script>
+// ======================================================================
+// State
+// ======================================================================
+const chat = document.getElementById('chat');
+const promptEl = document.getElementById('prompt');
+const imgUrlEl = document.getElementById('img-url');
+const btnSend = document.getElementById('btn-send');
+const acctSelect = document.getElementById('account');
+const modeRrBtn = document.getElementById('mode-rr');
+const modeSingleBtn = document.getElementById('mode-single');
+let currentAssistantEl = null;
+let currentTextSpan = null;
+let currentCursor = null;
+let isStreaming = false;
+let conversationMessages = [];
+
+// Account rotation state
+let accountList = [];
+let currentAccountEmail = '';
+
+function getMode() {
+  return localStorage.getItem('generateMode') || 'round-robin';
+}
+
+function getRRIndex() {
+  return parseInt(localStorage.getItem('generateRRIndex') || '0', 10) || 0;
+}
+
+function setRRIndex(v) {
+  localStorage.setItem('generateRRIndex', String(v));
+}
+
+function getSavedAccount() {
+  return localStorage.getItem('generateAccount') || '';
+}
+
+function setSavedAccount(email) {
+  localStorage.setItem('generateAccount', email);
+}
+
+// ======================================================================
+// Init
+// ======================================================================
+updateModeButtons();
+loadAccounts();
+
+function updateModeButtons() {
+  const mode = getMode();
+  modeRrBtn.className = 'mode-btn' + (mode === 'round-robin' ? ' active' : '');
+  modeSingleBtn.className = 'mode-btn' + (mode === 'single' ? ' active' : '');
+}
+
+async function loadAccounts() {
+  try {
+    const r = await fetch('/api/generate/accounts');
+    accountList = await r.json();
+    pickAccount();
+    updateAccountDisplay();
+  } catch(e) {
+    acctSelect.innerHTML = '<option value="">-- 加载失败 --</option>';
+    btnSend.disabled = true;
+    currentAccountEmail = '';
+    toast('加载账号失败: ' + e.message, 'err');
+  }
+}
+
+function pickAccount() {
+  if (accountList.length === 0) {
+    currentAccountEmail = '';
+    return;
+  }
+  const mode = getMode();
+  if (mode === 'round-robin') {
+    const idx = getRRIndex() % accountList.length;
+    currentAccountEmail = accountList[idx].email;
+  } else {
+    const saved = getSavedAccount();
+    const found = accountList.find(a => a.email === saved);
+    currentAccountEmail = found ? found.email : accountList[0].email;
+    setSavedAccount(currentAccountEmail);
+  }
+}
+
+async function advanceAccount() {
+  // Refresh account list (now excludes just-disabled accounts)
+  try {
+    const r = await fetch('/api/generate/accounts');
+    accountList = await r.json();
+  } catch(e) { /* keep old list */ }
+
+  const mode = getMode();
+  if (mode === 'round-robin') {
+    const idx = getRRIndex();
+    setRRIndex(idx + 1);
+  } else {
+    // Single mode: if current account is gone, pick first available
+    const found = accountList.find(a => a.email === currentAccountEmail);
+    if (!found && accountList.length > 0) {
+      currentAccountEmail = accountList[0].email;
+      setSavedAccount(currentAccountEmail);
+    }
+  }
+
+  pickAccount();
+  updateAccountDisplay();
+}
+
+function updateAccountDisplay() {
+  acctSelect.innerHTML = '';
+  if (accountList.length === 0) {
+    acctSelect.innerHTML = '<option value="">-- 无可用账号 --</option>';
+    btnSend.disabled = true;
+  } else {
+    accountList.forEach(a => {
+      const opt = document.createElement('option');
+      opt.value = a.email;
+      opt.textContent = `${a.email} ($${a.credits.toFixed(2)})`;
+      if (a.email === currentAccountEmail) opt.selected = true;
+      acctSelect.appendChild(opt);
+    });
+    const mode = getMode();
+    if (mode === 'round-robin') {
+      acctSelect.disabled = true;
+      acctSelect.style.opacity = '0.7';
+      acctSelect.title = '轮询模式下自动切换账号';
+    } else {
+      acctSelect.disabled = false;
+      acctSelect.style.opacity = '';
+      acctSelect.title = '';
+      acctSelect.onchange = () => {
+        currentAccountEmail = acctSelect.value;
+        setSavedAccount(currentAccountEmail);
+        btnSend.disabled = !acctSelect.value || isStreaming;
+      };
+    }
+    btnSend.disabled = !currentAccountEmail || isStreaming;
+  }
+}
+
+function setMode(mode) {
+  localStorage.setItem('generateMode', mode);
+  updateModeButtons();
+  pickAccount();
+  updateAccountDisplay();
+  conversationMessages = [];
+}
+
+// ======================================================================
+// Send
+// ======================================================================
+function onKeyDown(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+
+async function sendMessage() {
+  const email = currentAccountEmail;
+  const text = promptEl.value.trim();
+  const imgUrl = imgUrlEl.value.trim();
+  if (!email) { toast('请先选择账号', 'err'); return; }
+  if (!text && !imgUrl) return;
+  if (isStreaming) return;
+
+  // Build user message
+  let userContent;
+  if (imgUrl) {
+    userContent = [{type:'text', text: text || '描述这个图片'}];
+    userContent.push({type:'image_url', image_url:{url:imgUrl}});
+  } else {
+    userContent = text;
+  }
+
+  // Hide empty hint
+  const hint = chat.querySelector('.empty-hint');
+  if (hint) hint.remove();
+
+  // Render user message
+  renderUserMessage(text, imgUrl);
+
+  // Add to conversation, keep last 50 messages
+  conversationMessages.push({role:'user', content:userContent});
+  conversationMessages = conversationMessages.slice(-50);
+
+  // Start streaming
+  isStreaming = true;
+  btnSend.disabled = true;
+  btnSend.textContent = '等待中...';
+  promptEl.value = '';
+  imgUrlEl.value = '';
+
+  // Create assistant placeholder
+  currentAssistantEl = createAssistantPlaceholder();
+  chat.appendChild(currentAssistantEl);
+  scrollBottom();
+
+  try {
+    const response = await fetch('/api/generate/chat', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email, messages:conversationMessages})
+    });
+
+    if (!response.ok) {
+      const err = await response.text();
+      throw new Error(err || `HTTP ${response.status}`);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let assistantContent = '';
+
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, {stream:true});
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      for (const raw of lines) {
+        const line = raw.trim();
+        if (!line.startsWith('data: ')) continue;
+        const dataStr = line.slice(6);
+        if (dataStr === '[DONE]') {
+          finishStreaming(assistantContent);
+          return;
+        }
+        try {
+          const event = JSON.parse(dataStr);
+          if (event.error) {
+            showError(event.error);
+            return;
+          }
+          // Handle each event type
+          if (event.conversation) {
+            showConversationTitle(event.conversation);
+          }
+          if (event.status) {
+            updateStatus(event.status.text || event.status);
+          }
+          if (event.treza) {
+            if (event.treza.type === 'status' && event.treza.text) {
+              updateStatus(event.treza.text);
+            }
+            if (event.treza.type === 'media' && event.treza.url) {
+              addMedia(event.treza.url, event.treza.kind);
+            }
+          }
+          if (event.tool) {
+            addToolBadge(event.tool);
+          }
+          if (event.media) {
+            addMedia(event.media.url || event.media);
+          }
+          if (event.choices) {
+            const delta = event.choices[0]?.delta;
+            if (delta?.content) {
+              assistantContent += delta.content;
+              appendText(delta.content);
+            }
+          }
+        } catch(e) { /* skip malformed JSON */ }
+      }
+    }
+
+    // Stream ended without [DONE]
+    finishStreaming(assistantContent);
+
+  } catch(e) {
+    showError(e.message);
+  }
+}
+
+function renderUserMessage(text, imgUrl) {
+  const div = document.createElement('div');
+  div.className = 'msg user';
+  let html = '<div class="msg-role">You</div><div class="msg-bubble">' + esc(text || '(image)') + '</div>';
+  if (imgUrl) {
+    html += '<img class="msg-img" src="' + esc(imgUrl) + '" onerror="this.style.display=\'none\'" loading="lazy">';
+  }
+  div.innerHTML = html;
+  chat.appendChild(div);
+  scrollBottom();
+}
+
+function createAssistantPlaceholder() {
+  const div = document.createElement('div');
+  div.className = 'msg assistant';
+  div.innerHTML = '<div class="msg-role">Assistant</div><div class="msg-bubble"></div>';
+  currentTextSpan = null;
+  currentCursor = null;
+  return div;
+}
+
+function appendText(text) {
+  const bubble = currentAssistantEl.querySelector('.msg-bubble');
+  if (!currentTextSpan) {
+    currentTextSpan = document.createElement('span');
+    bubble.appendChild(currentTextSpan);
+  }
+  currentTextSpan.textContent += text;
+  // Keep cursor after text
+  if (currentCursor) currentCursor.remove();
+  currentCursor = document.createElement('span');
+  currentCursor.className = 'cursor';
+  bubble.appendChild(currentCursor);
+  scrollBottom();
+}
+
+function updateStatus(text) {
+  let statusEl = currentAssistantEl.querySelector('.msg-status');
+  if (!statusEl) {
+    statusEl = document.createElement('div');
+    statusEl.className = 'msg-status';
+    statusEl.innerHTML = '<span class="dot"></span><span class="status-text"></span>';
+    currentAssistantEl.appendChild(statusEl);
+  }
+  statusEl.querySelector('.status-text').textContent = text;
+  scrollBottom();
+}
+
+function addToolBadge(tool) {
+  let toolsEl = currentAssistantEl.querySelector('.msg-tools');
+  if (!toolsEl) {
+    toolsEl = document.createElement('div');
+    toolsEl.className = 'msg-tools';
+    currentAssistantEl.appendChild(toolsEl);
+  }
+  const badge = document.createElement('span');
+  badge.className = 'tool-badge ' + (tool.ok !== false ? 'ok' : 'fail');
+  badge.textContent = (tool.ok !== false ? '✓ ' : '✗ ') + (tool.name || 'tool');
+  toolsEl.appendChild(badge);
+  scrollBottom();
+}
+
+function addMedia(url, kind) {
+  if (kind === 'video' || /\.mp4(\?|$)/i.test(url)) {
+    const video = document.createElement('video');
+    video.className = 'msg-img';
+    video.src = url;
+    video.controls = true;
+    video.style.maxWidth = '480px';
+    video.style.maxHeight = '480px';
+    video.onerror = function() { this.style.display = 'none'; };
+    currentAssistantEl.appendChild(video);
+  } else {
+    const img = document.createElement('img');
+    img.className = 'msg-img';
+    img.src = url;
+    img.onerror = function() { this.style.display = 'none'; };
+    img.loading = 'lazy';
+    currentAssistantEl.appendChild(img);
+  }
+  scrollBottom();
+}
+
+function showConversationTitle(conv) {
+  const title = typeof conv === 'string' ? conv : (conv.title || conv.id || '');
+  if (!title) return;
+  let titleEl = chat.querySelector('.conv-title');
+  if (!titleEl) {
+    titleEl = document.createElement('div');
+    titleEl.className = 'conv-title';
+    chat.insertBefore(titleEl, chat.firstChild);
+  }
+  titleEl.textContent = title;
+}
+
+async function finishStreaming(content) {
+  if (currentCursor) currentCursor.remove();
+  currentCursor = null;
+  // Remove status dot animation
+  const statusEl = currentAssistantEl?.querySelector('.msg-status');
+  if (statusEl) {
+    const dot = statusEl.querySelector('.dot');
+    if (dot) dot.style.animation = 'none';
+  }
+  // Save to conversation
+  conversationMessages.push({role:'assistant', content: content || '(empty)'});
+  // Reset
+  currentAssistantEl = null;
+  currentTextSpan = null;
+  isStreaming = false;
+  btnSend.textContent = '发送';
+  promptEl.focus();
+
+  // Advance account rotation after chat completes
+  await advanceAccount();
+}
+
+function showError(msg) {
+  if (currentCursor) currentCursor.remove();
+  currentCursor = null;
+  const bubble = currentAssistantEl?.querySelector('.msg-bubble');
+  if (bubble) {
+    const errSpan = document.createElement('span');
+    errSpan.style.color = 'var(--red)';
+    errSpan.textContent = '错误: ' + msg;
+    bubble.appendChild(errSpan);
+  }
+  isStreaming = false;
+  currentAssistantEl = null;
+  currentTextSpan = null;
+  btnSend.disabled = !currentAccountEmail;
+  btnSend.textContent = '发送';
+  toast('请求失败: ' + msg, 'err');
+}
+
+function scrollBottom() {
+  chat.scrollTop = chat.scrollHeight;
+}
+
+// ======================================================================
+// Utils
+// ======================================================================
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s || '';
+  return d.innerHTML;
+}
+
+function toast(msg, type) {
+  const el = document.createElement('div');
+  el.className = 'toast toast-' + type;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2500);
+}
+</script>
+</body>
+</html>

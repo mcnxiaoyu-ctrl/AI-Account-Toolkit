@@ -1,0 +1,51 @@
+# ============================================================
+# TrezaReg 配置文件
+# ============================================================
+
+# --- Cloudflare 临时邮箱配置 ---
+cf_email:
+  base_url: "https://email.xxxx.top"       # CF 邮箱 worker 地址
+  domain: "xxxx.top"                       # 邮箱域名
+  login_email: ""       # 管理员登录邮箱
+  login_password: ""                # 管理员登录密码 (明文, 代码自动 SHA-256 哈希)
+  admin_auth: ""      # x-admin-auth 请求头
+
+# --- 代理配置 ---
+proxy:
+  enabled: true                               # 是否启用代理
+  api_url: "https://api.cliproxy.io/white/api?region=US&num=1&time=10&format=n&type=txt"  # 代理API地址
+  test_urls:                                  # 代理连通性测试地址
+  - "https://www.google.com/"
+  test_timeout: 8                             # 测试超时 (秒)
+
+# --- Treza 注册 API 配置 ---
+treza:
+  privy_app_id: "cmc3qreh800pfjs0lxodhz0of"
+  privy_ca_id: "b06bd3bf-1f77-442e-9e45-66b57266dc23"
+  init_url: "https://auth.privy.io/api/v1/passwordless/init"
+  auth_url: "https://auth.privy.io/api/v1/passwordless/authenticate"
+  origin: "https://www.trezalabs.com"
+
+# --- 注册参数 ---
+registration:
+  poll_timeout: 60                            # 等待验证码超时 (秒)
+  poll_interval: 5                            # 轮询间隔 (秒)
+  request_timeout: 30                         # HTTP 请求超时 (秒)
+
+# --- 注册中心配置 ---
+register_center:
+  auto_start_balanced: false                  # 均衡注册开机自启
+  auto_start_scheduled: false                 # 定时注册开机自启
+  balanced:
+    enabled: true                             # 是否启用均衡注册
+    target_available: 20                      # 目标可用账号数
+    check_interval_s: 30                      # 检查间隔 (秒)
+    reg_count: 5                              # 每次补注册数量
+    reg_jobs: 5                               # 补注册并发
+  scheduled:
+    count: 10                                 # 定时注册数量
+    jobs: 2                                   # 定时注册并发
+
+# --- 输出配置 ---
+output:
+  accounts_dir: "accounts"                    # 账号库目录

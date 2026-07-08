@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environment
+.venv/
+venv/
+
+# Build artifacts
+dist/
+*.egg-info/
+
+# Secrets
+.env
+
+# Output
+accounts/*.json
+
+# IDE
+.vscode/
+.idea/
+
+# uv
+uv.lock

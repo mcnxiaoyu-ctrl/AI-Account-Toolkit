@@ -1,0 +1,32 @@
+[project]
+name = "treza-reg"
+version = "0.1.0"
+description = "Treza registration automation tool with Cloudflare temp email and proxy pool support"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = [
+    "httpx>=0.27.0",
+    "pydantic>=2.0.0",
+    "pydantic-settings>=2.0.0",
+    "pyyaml>=6.0",
+    "python-dotenv>=1.0.0",
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "ruamel-yaml>=0.19.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24.0",
+]
+
+[project.scripts]
+treza-reg = "treza_reg.main:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/treza_reg"]

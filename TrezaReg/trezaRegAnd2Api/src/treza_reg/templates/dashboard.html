@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrezaReg Panel</title>
+<style>
+:root {
+  --bg: #f5f6fa; --card: #fff; --text: #2d3436; --sub: #636e72;
+  --border: #e0e0e0; --accent: #6c5ce7; --green: #00b894; --red: #d63031;
+  --yellow: #fdcb6e; --hover: #f0f0ff;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font: 14px/1.5 -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--text); }
+.header { background: var(--card); border-bottom: 1px solid var(--border); padding: 16px 24px; display: flex; align-items: center; justify-content: center; position: relative; }
+.header .brand { position: absolute; left: 24px; }
+.header h1 { font-size: 20px; font-weight: 700; color: var(--accent); }
+.header .sub { font-size: 12px; color: var(--sub); }
+.container { max-width: 1320px; margin: 0 auto; padding: 20px 24px; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 20px; }
+.stat-card { background: var(--card); border-radius: 10px; padding: 20px; border: 1px solid var(--border); text-align: center; }
+.stat-card .num { font-size: 32px; font-weight: 700; }
+.stat-card .label { font-size: 13px; color: var(--sub); margin-top: 4px; }
+.stat-card.total .num { color: var(--accent); }
+.stat-card.available .num { color: var(--green); }
+.stat-card.unavailable .num { color: var(--red); }
+.stat-card.disabled .num { color: var(--sub); }
+.toolbar { display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; align-items: center; }
+.toolbar select, .toolbar input { padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; outline: none; }
+.toolbar select:focus, .toolbar input:focus { border-color: var(--accent); }
+.toolbar input[type=text] { width: 200px; }
+.btn { padding: 8px 18px; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: .15s; display: inline-flex; align-items: center; gap: 6px; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { opacity: .85; }
+.btn-outline { background: var(--card); color: var(--accent); border: 1px solid var(--accent); }
+.btn-outline:hover { background: var(--hover); }
+.btn-sm { padding: 4px 12px; font-size: 12px; }
+.btn-danger { background: var(--red); color: #fff; }
+.btn-danger:hover { opacity: .85; }
+.btn-warn { background: var(--yellow); color: #333; }
+.table-wrap { background: var(--card); border-radius: 10px; border: 1px solid var(--border); overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 10px 14px; text-align: left; font-size: 13px; }
+th { background: #fafafa; font-weight: 600; color: var(--sub); border-bottom: 2px solid var(--border); white-space: nowrap; }
+td { border-bottom: 1px solid var(--border); }
+tr:hover td { background: var(--hover); }
+.badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+.badge-ok { background: #e6f9f0; color: var(--green); }
+.badge-zero { background: #ffeaea; color: var(--red); }
+.badge-new { background: #eef0ff; color: var(--accent); }
+.badge-discard { background: #f0f0f0; color: var(--sub); }
+.pagination { display: flex; gap: 8px; justify-content: center; padding: 16px; align-items: center; }
+.pagination button { padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--card); cursor: pointer; font-size: 13px; }
+.pagination button:disabled { opacity: .4; cursor: default; }
+.pagination button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+.pagination .current { font-weight: 600; color: var(--accent); }
+.loading { text-align: center; padding: 40px; color: var(--sub); }
+.toast { position: fixed; top: 20px; right: 20px; padding: 12px 20px; border-radius: 8px; color: #fff; font-weight: 600; z-index: 999; animation: fade .3s; }
+.toast-ok { background: var(--green); }
+.toast-err { background: var(--red); }
+@keyframes fade { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin .8s linear infinite; }
+.empty { text-align: center; padding: 60px; color: var(--sub); font-size: 15px; }
+.progress-bar { height: 4px; background: var(--border); border-radius: 2px; margin-top: 8px; overflow: hidden; }
+.progress-bar .fill { height: 100%; background: var(--accent); transition: width .3s; border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="brand">
+    <h1>TrezaReg Panel</h1>
+    <span class="sub">账号管理控制台</span>
+  </div>
+  <nav class="nav" style="display:flex;gap:4px;">
+    <a href="/" class="nav-link active" style="padding:6px 16px;border-radius:6px;text-decoration:none;font-size:13px;font-weight:600;background:var(--accent);color:#fff;">账号管理</a>
+    <a href="/register" class="nav-link" style="padding:6px 16px;border-radius:6px;text-decoration:none;font-size:13px;font-weight:600;color:var(--sub);">注册中心</a>
+    <a href="/generate" class="nav-link" style="padding:6px 16px;border-radius:6px;text-decoration:none;font-size:13px;font-weight:600;color:var(--sub);">生图</a>
+  </nav>
+</div>
+
+<div class="container">
+  <!-- 统计卡片 -->
+  <div class="stats" id="stats">
+    <div class="stat-card total"><div class="num" id="stat-total">-</div><div class="label">号池总数</div></div>
+    <div class="stat-card available"><div class="num" id="stat-available">-</div><div class="label">可用数量</div></div>
+    <div class="stat-card disabled"><div class="num" id="stat-disabled">-</div><div class="label">不可用/已废弃</div></div>
+  </div>
+
+  <!-- 进度条 (检查任务中) -->
+  <div class="progress-bar" id="progress-wrap" style="display:none;margin-bottom:12px;">
+    <div class="fill" id="progress-fill" style="width:0%"></div>
+  </div>
+  <div id="progress-msg" style="font-size:12px;color:var(--sub);margin-bottom:8px;"></div>
+
+  <!-- 工具栏 -->
+  <div class="toolbar">
+    <select id="filter-status" onchange="loadAccounts(1)">
+      <option value="all">全部状态</option>
+      <option value="available">可用 (额度>0/未知)</option>
+      <option value="disabled">不可用/已废弃</option>
+    </select>
+    <input type="text" id="filter-search" placeholder="搜索邮箱/钱包..." oninput="debounceSearch()">
+    <button class="btn btn-outline btn-sm" onclick="loadAccounts(1)">&#8635; 刷新</button>
+    <span style="flex:1;"></span>
+    <button class="btn btn-primary btn-sm" onclick="checkSelected()" id="btn-check-selected">&#8635; 选中查额 (0)</button>
+    <button class="btn btn-outline btn-sm" onclick="selectAll()" id="btn-select-all" style="font-size:11px;">全选</button>
+    <span id="check-status" style="font-size:12px;color:var(--sub);align-self:center;"></span>
+  </div>
+
+  <!-- 表格 -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:36px;"><input type="checkbox" id="cb-all" onchange="toggleAllCb(this.checked)" title="全选/取消"></th>
+          <th>邮箱</th>
+          <th>钱包地址</th>
+          <th>额度</th>
+          <th>注册时间</th>
+          <th>额度查询时间</th>
+          <th>状态</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="loading" id="loading">加载中...</div>
+    <div class="empty" id="empty" style="display:none;">暂无账号数据</div>
+  </div>
+
+  <!-- 分页 -->
+  <div class="pagination" id="pagination"></div>
+</div>
+
+<script>
+const STATE = { page: 1, perPage: 10, totalPages: 1, searchTimer: 0 };
+
+async function loadStats() {
+  try {
+    const r = await fetch('/api/stats');
+    const d = await r.json();
+    document.getElementById('stat-total').textContent = d.total;
+    document.getElementById('stat-available').textContent = d.available;
+    document.getElementById('stat-disabled').textContent = d.disabled;
+  } catch (e) { console.error(e); }
+}
+
+async function loadAccounts(page) {
+  STATE.page = page || STATE.page;
+  const status = document.getElementById('filter-status').value;
+  const search = document.getElementById('filter-search').value;
+  const tbody = document.getElementById('tbody');
+  const loading = document.getElementById('loading');
+  const empty = document.getElementById('empty');
+
+  loading.style.display = 'block';
+  empty.style.display = 'none';
+  tbody.innerHTML = '';
+
+  try {
+    const params = new URLSearchParams({ page: STATE.page, per_page: STATE.perPage, status, search });
+    const r = await fetch('/api/accounts?' + params);
+    const d = await r.json();
+    STATE.totalPages = d.total_pages;
+
+    if (d.items.length === 0) { empty.style.display = 'block'; }
+    else {
+      d.items.forEach(a => {
+        let statusHtml = '', creditsHtml = '-';
+        const credits = a.credits;
+        if (a.disabled || (credits != null && credits <= 0)) {
+          statusHtml = '<span class="badge badge-discard">不可用</span>';
+          creditsHtml = credits != null ? `<span class="badge badge-zero">${credits}</span>` : '-';
+        } else if (credits != null && credits > 0) {
+          statusHtml = '<span class="badge badge-ok">可用</span>';
+          creditsHtml = `<span class="badge badge-ok">${credits}</span>`;
+        } else {
+          statusHtml = a.is_new_user ? '<span class="badge badge-new">新账号</span>' : '<span class="badge badge-ok">未知</span>';
+          creditsHtml = '<span style="color:var(--sub);">未查询</span>';
+        }
+
+        const wallet = a.wallet_address ? a.wallet_address.slice(0,10) + '...' + a.wallet_address.slice(-6) : '-';
+        const checkedAt = a.credits_checked_at ? a.credits_checked_at.slice(0,16).replace('T',' ') : '-';
+        const regAt = a.registered_at ? a.registered_at.slice(0,16).replace('T',' ') : (a.created_at ? new Date(a.created_at*1000).toLocaleString() : '-');
+
+        let actionCol = '';
+        if (a.disabled) {
+          actionCol = `<button class="btn btn-outline btn-sm" onclick="restoreAccount('${esc(a.email)}')">恢复</button>`;
+        } else if (credits != null && credits <= 0) {
+          actionCol = `<button class="btn btn-outline btn-sm" onclick="checkOne('${esc(a.email)}')">查额</button>
+                       <button class="btn btn-danger btn-sm" onclick="disableAccount('${esc(a.email)}')" style="margin-left:4px;">废弃</button>`;
+        } else if (credits != null && credits > 0) {
+          actionCol = `<button class="btn btn-outline btn-sm" onclick="checkOne('${esc(a.email)}')">查额</button>`;
+        } else {
+          actionCol = `<button class="btn btn-outline btn-sm" onclick="checkOne('${esc(a.email)}')">查额</button>
+                       <button class="btn btn-danger btn-sm" onclick="disableAccount('${esc(a.email)}')" style="margin-left:4px;">废弃</button>`;
+        }
+
+        tbody.innerHTML += `<tr>
+          <td><input type="checkbox" class="cb-account" data-email="${esc(a.email)}" onchange="onCbChange()"></td>
+          <td style="font-weight:500;">${esc(a.email)}</td>
+          <td style="font-family:monospace;font-size:12px;" title="${esc(a.wallet_address||'')}">${wallet}</td>
+          <td>${creditsHtml}</td>
+          <td style="font-size:12px;color:var(--sub);">${regAt}</td>
+          <td style="font-size:12px;color:var(--sub);">${checkedAt}</td>
+          <td>${statusHtml}</td>
+          <td>${actionCol}</td>
+        </tr>`;
+      });
+    }
+
+    renderPagination();
+  } catch (e) {
+    tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--red);">加载失败: ' + e.message + '</td></tr>';
+  }
+  loading.style.display = 'none';
+  loadStats();
+}
+
+function renderPagination() {
+  const pg = document.getElementById('pagination');
+  if (STATE.totalPages <= 1) { pg.innerHTML = ''; return; }
+  let html = `<button ${STATE.page<=1?'disabled':''} onclick="loadAccounts(${STATE.page-1})">上一页</button>`;
+  html += `<span class="current">${STATE.page} / ${STATE.totalPages}</span>`;
+  html += `<button ${STATE.page>=STATE.totalPages?'disabled':''} onclick="loadAccounts(${STATE.page+1})">下一页</button>`;
+  pg.innerHTML = html;
+}
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s || '';
+  return d.innerHTML;
+}
+
+function debounceSearch() {
+  clearTimeout(STATE.searchTimer);
+  STATE.searchTimer = setTimeout(() => loadAccounts(1), 400);
+}
+
+async function checkOne(email) {
+  toast('正在查询额度...', 'ok');
+  try {
+    const r = await fetch('/api/accounts/' + encodeURIComponent(email) + '/check', { method: 'POST' });
+    const d = await r.json();
+    if (d.ok) {
+      toast(`额度: ${d.credits != null ? d.credits : '未知'} | 钱包: ${(d.wallet_address||'未获取').slice(0,10)}...`, 'ok');
+    } else {
+      toast('查询失败: ' + (d.error||''), 'err');
+    }
+    loadAccounts(STATE.page);
+  } catch(e) { toast('请求出错: '+e.message, 'err'); }
+}
+
+function getSelectedEmails() {
+  return [...document.querySelectorAll('.cb-account:checked')].map(cb => cb.dataset.email);
+}
+
+function onCbChange() {
+  const n = getSelectedEmails().length;
+  document.getElementById('btn-check-selected').innerHTML = `&#8635; 选中查额 (${n})`;
+  document.getElementById('cb-all').indeterminate = n > 0 && !document.querySelectorAll('.cb-account').length;
+  // Update select-all checkbox state
+  const total = document.querySelectorAll('.cb-account').length;
+  const cbAll = document.getElementById('cb-all');
+  cbAll.checked = total > 0 && n === total;
+  cbAll.indeterminate = n > 0 && n < total;
+}
+
+function selectAll() {
+  const total = document.querySelectorAll('.cb-account').length;
+  const checked = getSelectedEmails().length;
+  const check = checked < total;
+  document.querySelectorAll('.cb-account').forEach(cb => cb.checked = check);
+  onCbChange();
+}
+
+function toggleAllCb(checked) {
+  document.querySelectorAll('.cb-account').forEach(cb => cb.checked = checked);
+  onCbChange();
+}
+
+async function checkSelected() {
+  const emails = getSelectedEmails();
+  if (emails.length === 0) { toast('请先勾选账号', 'err'); return; }
+
+  const btn = document.getElementById('btn-check-selected');
+  btn.disabled = true;
+  btn.textContent = '启动中...';
+  toast(`开始查额 (${emails.length} 个)...`, 'ok');
+  try {
+    const r = await fetch('/api/accounts/check-batch', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({emails})
+    });
+    const d = await r.json();
+    if (d.ok) pollCheckStatus(); else { toast(d.error, 'err'); btn.disabled = false; updateSelectedBtn(); }
+  } catch(e) { toast('启动失败: '+e.message, 'err'); btn.disabled = false; updateSelectedBtn(); }
+}
+
+function updateSelectedBtn() {
+  const n = getSelectedEmails().length;
+  document.getElementById('btn-check-selected').innerHTML = `&#8635; 选中查额 (${n})`;
+  document.getElementById('btn-check-selected').disabled = false;
+}
+
+async function pollCheckStatus() {
+  const bar = document.getElementById('progress-wrap');
+  const fill = document.getElementById('progress-fill');
+  const msg = document.getElementById('progress-msg');
+  bar.style.display = 'block';
+
+  const timer = setInterval(async () => {
+    try {
+      const r = await fetch('/api/accounts/check-all/status');
+      const s = await r.json();
+      if (s.total > 0) {
+        fill.style.width = (s.progress / s.total * 100) + '%';
+      }
+      msg.textContent = s.msg;
+      if (!s.running) {
+        clearInterval(timer);
+        setTimeout(() => { bar.style.display = 'none'; msg.textContent = ''; }, 2000);
+        updateSelectedBtn();
+        loadAccounts(STATE.page);
+        toast(s.msg, 'ok');
+      }
+    } catch(e) { clearInterval(timer); }
+  }, 800);
+}
+
+async function disableAccount(email) {
+  if (!confirm('确定废弃账号 ' + email + ' ？')) return;
+  try {
+    const r = await fetch('/api/accounts/' + encodeURIComponent(email) + '/disable', { method: 'POST' });
+    const d = await r.json();
+    toast(d.ok ? '已移至废弃' : '失败: '+d.error, d.ok?'ok':'err');
+    loadAccounts(STATE.page);
+  } catch(e) { toast('请求出错', 'err'); }
+}
+
+async function restoreAccount(email) {
+  try {
+    const r = await fetch('/api/accounts/' + encodeURIComponent(email) + '/restore', { method: 'POST' });
+    const d = await r.json();
+    toast(d.ok ? '已恢复' : '失败: '+d.error, d.ok?'ok':'err');
+    loadAccounts(STATE.page);
+  } catch(e) { toast('请求出错', 'err'); }
+}
+
+function toast(msg, type) {
+  const el = document.createElement('div');
+  el.className = 'toast toast-' + type;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => { el.remove(); }, 2500);
+}
+
+// 初始化
+loadStats();
+loadAccounts(1);
+</script>
+</body>
+</html>

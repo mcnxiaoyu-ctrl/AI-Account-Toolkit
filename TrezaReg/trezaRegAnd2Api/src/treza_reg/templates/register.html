@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>注册中心 - TrezaReg</title>
+<style>
+:root {
+  --bg: #f5f6fa; --card: #fff; --text: #2d3436; --sub: #636e72;
+  --border: #e0e0e0; --accent: #6c5ce7; --green: #00b894; --red: #d63031;
+  --yellow: #fdcb6e; --hover: #f0f0ff;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font:14px/1.5 -apple-system,"Segoe UI",sans-serif; background:var(--bg); color:var(--text); }
+.header { background:var(--card); border-bottom:1px solid var(--border); padding:14px 24px; display:flex; align-items:center; justify-content:center; position:relative; }
+.header h1 { font-size:20px; font-weight:700; color:var(--accent); }
+.header .brand { position:absolute; left:24px; }
+.nav { display:flex; gap:4px; }
+.nav a { padding:6px 16px; border-radius:6px; text-decoration:none; font-size:13px; font-weight:600; color:var(--sub); }
+.nav a.active, .nav a:hover { background:var(--accent); color:#fff; }
+.container { max-width:1100px; margin:0 auto; padding:24px; }
+.tabs { display:flex; gap:2px; margin-bottom:24px; background:var(--card); border-radius:10px; padding:4px; border:1px solid var(--border); }
+.tab { flex:1; padding:10px 20px; text-align:center; border-radius:8px; cursor:pointer; font-weight:600; font-size:14px; border:none; background:transparent; color:var(--sub); transition:.15s; }
+.tab.active { background:var(--accent); color:#fff; }
+.tab:hover:not(.active) { background:var(--hover); }
+.panel { display:none; }
+.panel.active { display:block; }
+.card { background:var(--card); border-radius:10px; border:1px solid var(--border); padding:20px; margin-bottom:16px; }
+.card-title { font-size:16px; font-weight:700; margin-bottom:14px; color:var(--text); }
+.form-row { display:flex; gap:12px; margin-bottom:12px; flex-wrap:wrap; align-items:end; }
+.form-group { display:flex; flex-direction:column; gap:4px; }
+.form-group label { font-size:12px; font-weight:600; color:var(--sub); }
+.form-group input, .form-group select { padding:8px 12px; border:1px solid var(--border); border-radius:6px; font-size:14px; outline:none; width:140px; }
+.form-group input:focus, .form-group select:focus { border-color:var(--accent); }
+.form-group input[type="datetime-local"] { width:220px; }
+.check-row { display:flex; align-items:center; gap:8px; margin-bottom:12px; }
+.check-row input[type="checkbox"] { width:18px; height:18px; accent-color:var(--accent); }
+.btn { padding:8px 20px; border-radius:6px; font-size:13px; font-weight:600; cursor:pointer; border:none; transition:.15s; display:inline-flex; align-items:center; gap:6px; }
+.btn-primary { background:var(--accent); color:#fff; }
+.btn-primary:hover { opacity:.85; }
+.btn-primary:disabled { opacity:.5; cursor:not-allowed; }
+.btn-danger { background:var(--red); color:#fff; }
+.btn-danger:hover { opacity:.85; }
+.btn-outline { background:var(--card); color:var(--accent); border:1px solid var(--accent); }
+.btn-outline:hover { background:var(--hover); }
+.btn-sm { padding:4px 12px; font-size:12px; }
+.metrics { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:16px; }
+.metric { background:var(--card); border-radius:8px; padding:16px; text-align:center; border:1px solid var(--border); }
+.metric .num { font-size:28px; font-weight:700; }
+.metric .lbl { font-size:11px; color:var(--sub); margin-top:2px; }
+.metric.ok .num { color:var(--green); }
+.metric.fail .num { color:var(--red); }
+.metric.rate .num { color:var(--accent); }
+.progress-wrap { margin-bottom:16px; }
+.progress-bar { height:8px; background:var(--border); border-radius:4px; overflow:hidden; margin-bottom:4px; }
+.progress-bar .fill { height:100%; background:var(--accent); border-radius:4px; transition:width .3s; }
+.progress-info { display:flex; justify-content:space-between; font-size:12px; color:var(--sub); }
+.table-wrap { background:var(--card); border-radius:10px; border:1px solid var(--border); overflow-x:auto; }
+table { width:100%; border-collapse:collapse; }
+th, td { padding:8px 12px; text-align:left; font-size:12px; }
+th { background:#fafafa; font-weight:600; color:var(--sub); border-bottom:2px solid var(--border); white-space:nowrap; }
+td { border-bottom:1px solid var(--border); }
+tr:hover td { background:var(--hover); }
+.badge { display:inline-block; padding:1px 7px; border-radius:10px; font-size:11px; font-weight:600; }
+.badge-ok { background:#e6f9f0; color:var(--green); }
+.badge-fail { background:#ffeaea; color:var(--red); }
+.badge-run { background:#eef0ff; color:var(--accent); }
+.badge-pend { background:#f0f0f0; color:var(--sub); }
+.empty { text-align:center; padding:40px; color:var(--sub); }
+.toast { position:fixed; top:20px; right:20px; padding:10px 18px; border-radius:8px; color:#fff; font-weight:600; z-index:999; animation:fade .3s; }
+.toast-ok { background:var(--green); }
+.toast-err { background:var(--red); }
+@keyframes fade { from{opacity:0;transform:translateY(-10px);} to{opacity:1;transform:translateY(0);} }
+.alert { padding:10px 14px; border-radius:6px; font-size:13px; margin-bottom:12px; }
+.alert-info { background:#eef0ff; color:var(--accent); border:1px solid #d0d0ff; }
+.alert-warn { background:#fff8e6; color:#b8860b; border:1px solid #ffe0a0; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="brand">
+    <h1>TrezaReg</h1>
+  </div>
+  <nav class="nav">
+    <a href="/">账号管理</a>
+    <a href="/register" class="active">注册中心</a>
+    <a href="/generate">生图</a>
+  </nav>
+</div>
+
+<div class="container">
+  <!-- 标签页 -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('single')">单独注册</button>
+    <button class="tab" id="tab-scheduled" onclick="switchTab('scheduled')">定时注册</button>
+    <button class="tab" id="tab-balanced" onclick="switchTab('balanced')">均衡注册</button>
+  </div>
+
+  <!-- ================================================================ -->
+  <!-- 单独注册 -->
+  <!-- ================================================================ -->
+  <div class="panel active" id="panel-single">
+    <div class="card">
+      <div class="card-title">注册配置</div>
+      <div class="form-row">
+        <div class="form-group"><label>注册数量</label><input type="number" id="sg-count" value="5" min="1" max="999"></div>
+        <div class="form-group"><label>并发数</label><input type="number" id="sg-jobs" value="1" min="1" max="50"></div>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-primary" id="btn-start" onclick="startSingle()">开始注册</button>
+        <button class="btn btn-danger" id="btn-stop" onclick="stopRegistration()" style="display:none;">停止</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ================================================================ -->
+  <!-- 定时注册 -->
+  <!-- ================================================================ -->
+  <div class="panel" id="panel-scheduled">
+    <div class="card">
+      <div class="card-title">定时注册</div>
+      <div class="form-row">
+        <div class="form-group"><label>注册数量</label><input type="number" id="sc-count" value="10" min="1" max="999"></div>
+        <div class="form-group"><label>并发数</label><input type="number" id="sc-jobs" value="2" min="1" max="50"></div>
+        <div class="form-group"><label>执行时间</label><input type="datetime-local" id="sc-time"></div>
+      </div>
+      <div class="check-row">
+        <input type="checkbox" id="sc-auto-start" onchange="saveScheduleAutoStart()"><label for="sc-auto-start"><strong>开机自启</strong>（服务重启后自动创建 10 分钟后的定时任务）</label>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button class="btn btn-primary" id="btn-schedule" onclick="startSchedule()">创建定时任务</button>
+        <button class="btn btn-danger" id="btn-cancel-schedule" onclick="cancelSchedule()" style="display:none;">取消定时</button>
+      </div>
+    </div>
+
+    <div class="card" id="sc-status-card" style="display:none;">
+      <div class="card-title">定时任务状态</div>
+      <div id="sc-status-content"></div>
+    </div>
+
+  </div>
+
+  <!-- ================================================================ -->
+  <!-- 均衡注册 -->
+  <!-- ================================================================ -->
+  <div class="panel" id="panel-balanced">
+    <div class="card">
+      <div class="card-title">均衡注册配置</div>
+      <div class="check-row">
+        <input type="checkbox" id="bl-enabled" onchange="toggleBalanced()"><label for="bl-enabled"><strong>启用均衡注册</strong>（当可用账号低于阈值时自动补注册）</label>
+      </div>
+      <div id="bl-config-body" style="display:none;">
+        <div class="form-row">
+          <div class="form-group"><label>目标可用数</label><input type="number" id="bl-target" value="10" min="1"></div>
+          <div class="form-group"><label>每次补注册数</label><input type="number" id="bl-reg-count" value="5" min="1"></div>
+          <div class="form-group"><label>注册并发</label><input type="number" id="bl-reg-jobs" value="2" min="1" max="50"></div>
+          <div class="form-group"><label>检查间隔(秒)</label><input type="number" id="bl-interval" value="60" min="10"></div>
+        </div>
+        <div class="check-row">
+          <input type="checkbox" id="bl-auto-start"><label for="bl-auto-start"><strong>开机自启</strong>（服务重启后自动恢复均衡注册监控）</label>
+        </div>
+        <button class="btn btn-primary" onclick="saveBalanced()">保存配置</button>
+      </div>
+    </div>
+
+    <div class="card" id="bl-status-card" style="display:none;">
+      <div class="card-title">均衡注册状态</div>
+      <div id="bl-status-content"></div>
+    </div>
+  </div>
+
+  <!-- ================================================================ -->
+  <!-- 共享: 注册指标 / 进度 / 任务列表 (所有标签页可见) -->
+  <!-- ================================================================ -->
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+    <button class="btn btn-outline btn-sm" onclick="refreshTaskList()">&#8635; 刷新列表</button>
+  </div>
+  <div class="metrics" id="sg-metrics" style="display:none;">
+    <div class="metric"><div class="num" id="sg-total">0</div><div class="lbl">总数</div></div>
+    <div class="metric ok"><div class="num" id="sg-success">0</div><div class="lbl">成功</div></div>
+    <div class="metric fail"><div class="num" id="sg-fail">0</div><div class="lbl">失败</div></div>
+    <div class="metric rate"><div class="num" id="sg-rate">0%</div><div class="lbl">成功率</div></div>
+    <div class="metric"><div class="num" id="sg-eta">-</div><div class="lbl">预计剩余</div></div>
+  </div>
+
+  <div class="progress-wrap" id="sg-progress-wrap" style="display:none;">
+    <div class="progress-bar"><div class="fill" id="sg-progress-fill" style="width:0%"></div></div>
+    <div class="progress-info"><span id="sg-progress-text">0/0</span><span id="sg-elapsed">0s</span></div>
+  </div>
+
+  <div class="table-wrap" id="sg-table-wrap">
+    <table>
+      <thead><tr><th>邮箱</th><th>状态</th><th>错误原因</th><th>耗时</th></tr></thead>
+      <tbody id="sg-tbody">
+        <tr><td colspan="4" class="empty">加载中...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+<script>
+// ======================================================================
+// Utils
+// ======================================================================
+function toast(msg, type) {
+  const el = document.createElement('div');
+  el.className = 'toast toast-' + type;
+  el.textContent = msg;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 2500);
+}
+
+function post(url, body) {
+  return fetch(url, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) })
+    .then(r => r.json());
+}
+
+// ======================================================================
+// Tab switching
+// ======================================================================
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.querySelector('.tab:has(+ #panel-' + name + ')') ||
+    [...document.querySelectorAll('.tab')].find(t => t.textContent.includes(
+      name==='single'?'单独':name==='scheduled'?'定时':'均衡'
+    ))?.classList.add('active');
+  // simpler: just find by content
+  const tabs = document.querySelectorAll('.tab');
+  const map = {single:0, scheduled:1, balanced:2};
+  tabs[map[name]].classList.add('active');
+
+  if (name === 'balanced') loadBalancedStatus();
+  if (name === 'scheduled') loadScheduleStatus();
+}
+// fix tab click
+document.querySelectorAll('.tab').forEach((t, i) => {
+  t.onclick = () => switchTab(['single','scheduled','balanced'][i]);
+});
+
+// ======================================================================
+// Single Registration
+// ======================================================================
+let _sgTimer = 0; let _sgPollTimer = 0;
+
+async function startSingle() {
+  const count = parseInt(document.getElementById('sg-count').value) || 5;
+  const jobs = parseInt(document.getElementById('sg-jobs').value) || 1;
+
+  const r = await post('/api/register/start', { count, jobs });
+  if (!r.ok) { toast(r.error, 'err'); return; }
+  toast(r.msg, 'ok');
+
+  document.getElementById('btn-start').style.display = 'none';
+  document.getElementById('btn-stop').style.display = '';
+  document.getElementById('sg-metrics').style.display = 'grid';
+  document.getElementById('sg-progress-wrap').style.display = 'block';
+
+  _sgPollTimer = setInterval(pollSingleStatus, 1000);
+}
+
+async function stopRegistration() {
+  const r = await post('/api/register/stop', {});
+  toast(r.ok ? r.msg : r.error, r.ok ? 'ok' : 'err');
+}
+
+async function pollSingleStatus() {
+  try {
+    const r = await fetch('/api/register/status').then(r => r.json());
+    // Update shared UI (metrics, progress, task list)
+    updateRegUI('sg', r);
+
+    if (r.status === 'done' || r.status === 'idle') {
+      clearInterval(_sgPollTimer);
+      document.getElementById('btn-start').style.display = '';
+      document.getElementById('btn-stop').style.display = 'none';
+      loadScheduleStatus();
+      loadBalancedStatus();
+    }
+  } catch(e) {}
+}
+
+function _renderTaskRow(t) {
+  let badge = '<span class="badge badge-pend">等待</span>';
+  if (t.status === 'ok') badge = '<span class="badge badge-ok">成功</span>';
+  else if (t.status === 'fail') badge = '<span class="badge badge-fail">失败</span>';
+  else if (t.status === 'running') badge = '<span class="badge badge-run">运行中</span>';
+  const err = t.error || '';
+  return `<tr>
+    <td style="font-family:monospace;font-size:12px;">${esc(t.email) || '-'}</td>
+    <td>${badge}</td>
+    <td style="color:var(--red);font-size:12px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(err)}">${esc(err) || '-'}</td>
+    <td>${t.elapsed_s ? t.elapsed_s+'s' : '-'}</td>
+  </tr>`;
+}
+
+function updateRegUI(pref, r) {
+  document.getElementById(pref + '-total').textContent = r.total || 0;
+  document.getElementById(pref + '-success').textContent = r.success || 0;
+  document.getElementById(pref + '-fail').textContent = r.fail || 0;
+  document.getElementById(pref + '-rate').textContent = (r.success_rate || 0) + '%';
+  document.getElementById(pref + '-eta').textContent = r.eta_s ? r.eta_s + 's' : '-';
+  document.getElementById(pref + '-progress-fill').style.width = (r.percent || 0) + '%';
+  document.getElementById(pref + '-progress-text').textContent = `${r.completed}/${r.total}`;
+  document.getElementById(pref + '-elapsed').textContent = (r.elapsed_s || 0) + 's';
+  // Show/hide metrics and progress
+  const running = r.status === 'running' || r.status === 'stopping';
+  document.getElementById(pref + '-metrics').style.display = (r.status !== 'idle') ? 'grid' : 'none';
+  document.getElementById(pref + '-progress-wrap').style.display = running ? 'block' : 'none';
+
+  // 合并当前任务和历史
+  const currentTasks = (r.tasks || []).slice();
+  const history = (r.history || []);
+  // 收集所有历史中的 tasks
+  let historyTasks = [];
+  history.forEach(h => {
+    if (h.tasks && h.tasks.length) {
+      historyTasks = historyTasks.concat(h.tasks.map(t => ({...t, _batch: h.started_at ? h.started_at.slice(0,16) : ''})));
+    }
+  });
+  // 去重: 当前任务优先
+  const currentIds = new Set(currentTasks.map(t => t.tid + '|' + t.email));
+  historyTasks = historyTasks.filter(t => !currentIds.has(t.tid + '|' + t.email));
+
+  const tbody = document.getElementById('sg-tbody');
+  const allTasks = [...currentTasks, ...historyTasks.slice(-50)];
+  if (allTasks.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty">暂无注册记录</td></tr>';
+  } else {
+    tbody.innerHTML = allTasks.map(_renderTaskRow).join('');
+  }
+}
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s || '';
+  return d.innerHTML;
+}
+
+// ======================================================================
+// Scheduled Registration
+// ======================================================================
+async function startSchedule() {
+  const count = parseInt(document.getElementById('sc-count').value) || 10;
+  const jobs = parseInt(document.getElementById('sc-jobs').value) || 2;
+  const runAt = document.getElementById('sc-time').value;
+  if (!runAt) { toast('请选择执行时间', 'err'); return; }
+
+  const r = await post('/api/register/schedule', { count, jobs, run_at: runAt });
+  if (!r.ok) { toast(r.error, 'err'); return; }
+  toast(r.msg, 'ok');
+  loadScheduleStatus();
+}
+
+async function cancelSchedule() {
+  const r = await post('/api/register/schedule/cancel', {});
+  toast(r.ok ? r.msg : r.error, r.ok ? 'ok' : 'err');
+  loadScheduleStatus();
+}
+
+async function loadHistory() {
+  try {
+    const r = await fetch('/api/register/history').then(r => r.json());
+    const tbody = document.getElementById('sg-tbody');
+    let allTasks = [];
+    r.forEach(h => {
+      if (h.tasks && h.tasks.length) {
+        const batch = h.started_at ? h.started_at.slice(0,16) : '';
+        allTasks = allTasks.concat(h.tasks.map(t => ({...t, _batch: batch})));
+      }
+    });
+    if (allTasks.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" class="empty">暂无注册记录</td></tr>';
+    } else {
+      tbody.innerHTML = allTasks.map(_renderTaskRow).join('');
+    }
+  } catch(e) { console.error(e); }
+}
+
+async function loadScheduleStatus() {
+  const r = await fetch('/api/register/schedule/status').then(r => r.json());
+  document.getElementById('sc-auto-start').checked = !!r.auto_start_scheduled;
+  const card = document.getElementById('sc-status-card');
+  const content = document.getElementById('sc-status-content');
+  const btnSchedule = document.getElementById('btn-schedule');
+  const btnCancel = document.getElementById('btn-cancel-schedule');
+
+  if (r.active) {
+    card.style.display = 'block';
+    btnSchedule.style.display = 'none';
+    btnCancel.style.display = '';
+    content.innerHTML = `
+      <div class="alert alert-info">
+        <strong>定时任务进行中</strong><br>
+        数量: ${r.count} | 并发: ${r.jobs}<br>
+        执行时间: ${r.run_at} | 剩余: ${r.remaining_s}s
+      </div>`;
+  } else {
+    card.style.display = 'none';
+    btnSchedule.style.display = '';
+    btnCancel.style.display = 'none';
+    content.innerHTML = '';
+  }
+}
+
+async function saveScheduleAutoStart() {
+  const enabled = document.getElementById('sc-auto-start').checked;
+  await post('/api/register/schedule/auto-start', { enabled });
+}
+
+// Init datetime field
+document.getElementById('sc-time').value = new Date(Date.now() + 600000).toISOString().slice(0,16);
+
+// ======================================================================
+// Balanced Registration
+// ======================================================================
+function toggleBalanced() {
+  const en = document.getElementById('bl-enabled').checked;
+  document.getElementById('bl-config-body').style.display = en ? 'block' : 'none';
+}
+
+async function saveBalanced() {
+  const config = {
+    enabled: document.getElementById('bl-enabled').checked,
+    target_available: parseInt(document.getElementById('bl-target').value) || 10,
+    reg_count: parseInt(document.getElementById('bl-reg-count').value) || 5,
+    reg_jobs: parseInt(document.getElementById('bl-reg-jobs').value) || 2,
+    check_interval_s: parseInt(document.getElementById('bl-interval').value) || 60,
+    auto_start_balanced: document.getElementById('bl-auto-start').checked,
+  };
+  const r = await post('/api/register/balanced/config', config);
+  if (r.ok) {
+    toast('配置已保存，均衡注册' + (config.enabled ? '已启动' : '已停止'), 'ok');
+  } else {
+    toast('保存失败: ' + r.error, 'err');
+  }
+  loadBalancedStatus();
+}
+
+async function loadBalancedStatus() {
+  try {
+    const r = await fetch('/api/register/balanced/config').then(r => r.json());
+    document.getElementById('bl-enabled').checked = r.enabled;
+    document.getElementById('bl-auto-start').checked = !!r.auto_start_balanced;
+    toggleBalanced();
+    if (r.enabled) {
+      document.getElementById('bl-target').value = r.target_available;
+      document.getElementById('bl-reg-count').value = r.reg_count;
+      document.getElementById('bl-reg-jobs').value = r.reg_jobs;
+      document.getElementById('bl-interval').value = r.check_interval_s;
+    }
+
+    const card = document.getElementById('bl-status-card');
+    const content = document.getElementById('bl-status-content');
+    if (r.enabled) {
+      card.style.display = 'block';
+      const needed = r.needed || 0;
+      content.innerHTML = `
+        <div class="metrics" style="margin-bottom:8px;">
+          <div class="metric"><div class="num" style="color:var(--accent);">${r.current_available}</div><div class="lbl">当前可用</div></div>
+          <div class="metric"><div class="num">${r.target_available}</div><div class="lbl">目标可用</div></div>
+          <div class="metric"><div class="num" style="color:${needed>0?'var(--red)':'var(--green)'};">${needed}</div><div class="lbl">需补注册</div></div>
+          <div class="metric"><div class="num">${r.current_total}</div><div class="lbl">号池总数</div></div>
+        </div>
+        <div class="alert ${needed>0?'alert-warn':'alert-info'}">
+          ${needed>0 ? `可用不足，下次检查后将自动补注册 ${Math.min(needed, r.reg_count)} 个账号` : '号池充足，无需补注册'}
+          &nbsp;(检查间隔: ${r.check_interval_s}s)
+        </div>`;
+    } else {
+      card.style.display = 'none';
+    }
+  } catch(e) {}
+}
+
+async function refreshTaskList() {
+  try {
+    const r = await fetch('/api/register/status').then(r => r.json());
+    updateRegUI('sg', r);
+  } catch(e) {}
+}
+
+// Init
+loadScheduleStatus();
+loadBalancedStatus();
+loadHistory();
+</script>
+</body>
+</html>

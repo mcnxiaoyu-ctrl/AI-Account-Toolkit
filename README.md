@@ -42,6 +42,7 @@ AI-Account-Toolkit/
 ├── 📂 freemail/                # 临时邮箱服务端 (Cloudflare Workers)
 ├── 📂 openai_pool_v6/          # OpenAI 账号池编排器 (旗舰版)
 ├── 📂 ClashVerge_/             # 代理负载均衡与轮询配置
+├── 📂 TrezaReg/                # Treza 注册自动化工具 (支持 Cloudflare 邮箱 + 代理池 + API 转换)
 └── 📂 packages/                # 模块化子模块 (Submodules)
     ├── 🤖 openai/              # 核心注册与 API 兼容层
     ├── ⚔️ claude/               # Key 轮换与负载均衡
@@ -68,6 +69,7 @@ AI-Account-Toolkit/
 | **team-all-in-one** | 可视化注册管理系统，支持多邮箱源、代理轮换及 Token 导出。 | [README](team_all-in-one/README.md) |
 | **OpenAI Orchestrator** | 自动化维护账号池，支持 Token 状态监控与多平台分发。 | [V6 README](openai_pool_orchestrator-V6/README.md) |
 | **chatgpt-work** | ChatGPT 工作区管理浏览器插件，支持车队管理、批量上车、Gmail 别名生成。 | [README](Extensions/chatgpt-work/README.md) |
+| **TrezaReg** | Treza 注册自动化工具，支持 Cloudflare 临时邮箱、代理池及 API 格式转换。 | [README](TrezaReg/trezaRegAnd2Api/README.md) |
 
 ### 🤖 OpenAI 模块 (packages/openai)
 
