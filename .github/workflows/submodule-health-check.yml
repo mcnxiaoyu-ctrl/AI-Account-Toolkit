@@ -68,13 +68,6 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const { data: submodules } = await github.rest.git.listSubmodules({
-              owner: context.repo.owner,
-              repo: context.repo.repo
-            });
-
-            // Get the report from the previous step
-            const fs = require('fs');
             let report = '## ⚠️ Submodule Health Check Failed\n\n以下子模块可能存在访问问题，请检查：\n\n';
 
             // Parse gitmodules directly
